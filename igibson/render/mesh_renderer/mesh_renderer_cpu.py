@@ -180,7 +180,6 @@ class MeshRenderer(object):
             assert shader_available, "Error: only GLSL version 450 and 460 shaders are supported"
         else:
             glsl_version = "460"
-
         if self.fisheye:
             log.error("Fisheye is currently not supported.")
             exit(1)
@@ -211,7 +210,7 @@ class MeshRenderer(object):
         self.camera = [1, 0, 0]
         self.target = [0, 0, 0]
         self.up = [0, 0, 1]
-        self.znear = 0.1
+        self.znear = 0.001
         self.zfar = 100
         P = perspective(self.vertical_fov, float(self.width) / float(self.height), self.znear, self.zfar)
         V = lookat(self.camera, self.target, up=self.up)
@@ -761,7 +760,7 @@ class MeshRenderer(object):
         V = lookat(self.camera, self.target, up=self.up)
         self.V = np.ascontiguousarray(V, np.float32)
         # change shadow mapping camera to be above the real camera
-        self.set_light_position_direction([self.camera[0], self.camera[1], 10], [self.camera[0], self.camera[1], 0])
+        # self.set_light_position_direction([self.camera[0], self.camera[1], 10], [self.camera[0], self.camera[1], 0])
         if cache:
             self.cache = self.V
 
@@ -1260,12 +1259,16 @@ class MeshRenderer(object):
         frames = []
         hide_instances = robot.renderer_instances if self.rendering_settings.hide_robot else []
         need_flow_info = "optical_flow" in modes or "scene_flow" in modes
-        camera_pos = robot.eyes.get_position()
-        orn = robot.eyes.get_orientation()
-        mat = quat2rotmat(xyzw2wxyz(orn))[:3, :3]
-        view_direction = mat.dot(np.array([1, 0, 0]))
-        up_direction = mat.dot(np.array([0, 0, 1]))
-        self.set_camera(camera_pos, camera_pos + view_direction, up_direction, cache=need_flow_info and cache)
+        if robot.eyes is not None:
+            camera_pos = robot.eyes.get_position()
+            orn = robot.eyes.get_orientation()
+            mat = quat2rotmat(xyzw2wxyz(orn))[:3, :3]
+            view_direction = mat.dot(np.array([1, 0, 0]))
+            up_direction = mat.dot(np.array([0, 0, 1]))
+            self.set_camera(camera_pos, camera_pos + view_direction, up_direction, cache=need_flow_info and cache)
+        else:
+            eye, target, up = robot.get_camera_eye_target_up()
+            self.set_camera(eye, target, up, cache=need_flow_info and cache)
         for item in self.render(modes=modes, hidden=hide_instances):
             frames.append(item)
 

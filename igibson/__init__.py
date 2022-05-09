@@ -117,17 +117,17 @@ if os.path.exists(assets_path):
 MIN_DATASET_VERSION_INCL = "2.0.6"
 # Compatible with releases for same major/minor/patch:
 MAX_DATASET_VERSION_EXCL = "%d.%d.%d" % (_PARSED_VERSION.major, _PARSED_VERSION.minor, _PARSED_VERSION.micro + 1)
-if os.path.exists(ig_dataset_path):
-    _ig_dataset_version = get_version(ig_dataset_path)
-    assert (
-        packaging.version.Version(MIN_DATASET_VERSION_INCL)
-        <= _ig_dataset_version
-        < packaging.version.Version(MAX_DATASET_VERSION_EXCL)
-    ), "ig_dataset version %s incompatible. Needs to be in range [%s, %s)" % (
-        str(_ig_dataset_version),
-        str(MIN_DATASET_VERSION_INCL),
-        str(MAX_DATASET_VERSION_EXCL),
-    )
+# if os.path.exists(ig_dataset_path):
+#     _ig_dataset_version = get_version(ig_dataset_path)
+#     assert (
+#         packaging.version.Version(MIN_DATASET_VERSION_INCL)
+#         <= _ig_dataset_version
+#         < packaging.version.Version(MAX_DATASET_VERSION_EXCL)
+#     ), "ig_dataset version %s incompatible. Needs to be in range [%s, %s)" % (
+#         str(_ig_dataset_version),
+#         str(MIN_DATASET_VERSION_INCL),
+#         str(MAX_DATASET_VERSION_EXCL),
+#     )
 
 examples_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "examples")
 configs_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "configs")

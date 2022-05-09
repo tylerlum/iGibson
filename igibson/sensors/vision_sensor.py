@@ -2,6 +2,7 @@ import os
 from collections import OrderedDict
 
 import numpy as np
+import cv2
 
 import igibson
 from igibson.robots.behavior_robot import BehaviorRobot
@@ -19,8 +20,8 @@ class VisionSensor(BaseSensor):
         super(VisionSensor, self).__init__(env)
         self.modalities = modalities
         self.raw_modalities = self.get_raw_modalities(modalities)
-        self.image_width = self.config.get("image_width", 128)
-        self.image_height = self.config.get("image_height", 128)
+        self.image_width = self.config.get("image_width_sensor", 128)
+        self.image_height = self.config.get("image_height_sensor", 128)
 
         self.depth_noise_rate = self.config.get("depth_noise_rate", 0.0)
         self.depth_low = self.config.get("depth_low", 0.5)
@@ -74,7 +75,7 @@ class VisionSensor(BaseSensor):
         """
         :return: RGB sensor reading, normalized to [0.0, 1.0]
         """
-        return raw_vision_obs["rgb"][:, :, :3]
+        return cv2.resize(raw_vision_obs["rgb"][:, :, :3], (self.image_width, self.image_height), interpolation=cv2.INTER_LINEAR)
 
     def get_highlight(self, raw_vision_obs):
         if not "rgb" in raw_vision_obs:
@@ -96,7 +97,7 @@ class VisionSensor(BaseSensor):
         """
         :return: depth sensor reading, normalized to [0.0, 1.0]
         """
-        depth = -raw_vision_obs["3d"][:, :, 2:3]
+        depth = cv2.resize(-raw_vision_obs["3d"][:, :, 2:3], (self.image_width, self.image_height), interpolation=cv2.INTER_LINEAR)
         # 0.0 is a special value for invalid entries
         depth[depth < self.depth_low] = 0.0
         depth[depth > self.depth_high] = 0.0
@@ -129,13 +130,15 @@ class VisionSensor(BaseSensor):
         """
         :return: surface normal reading
         """
-        return raw_vision_obs["normal"][:, :, :3]
+        return cv2.resize(raw_vision_obs["normal"][:, :, :3], (self.image_width, self.image_height), interpolation=cv2.INTER_LINEAR)
 
     def get_seg(self, raw_vision_obs):
         """
         :return: semantic segmentation mask, between 0 and MAX_CLASS_COUNT
         """
-        seg = np.round(raw_vision_obs["seg"][:, :, 0:1] * MAX_CLASS_COUNT).astype(np.int32)
+        seg = np.round(
+            cv2.resize(raw_vision_obs["seg"][:, :, 0:1] * MAX_CLASS_COUNT, (self.image_width, self.image_height), interpolation=cv2.INTER_LINEAR)
+        ).astype(np.int32)
         return seg
 
     def get_ins_seg(self, raw_vision_obs):
@@ -152,6 +155,7 @@ class VisionSensor(BaseSensor):
         :return: vision sensor reading
         """
         raw_vision_obs = env.simulator.renderer.render_robot_cameras(modes=self.raw_modalities)
+
 
         raw_vision_obs = {mode: value for mode, value in zip(self.raw_modalities, raw_vision_obs)}
 
