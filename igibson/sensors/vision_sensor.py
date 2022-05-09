@@ -137,7 +137,7 @@ class VisionSensor(BaseSensor):
         :return: semantic segmentation mask, between 0 and MAX_CLASS_COUNT
         """
         seg = np.round(
-            cv2.resize(raw_vision_obs["seg"][:, :, 0:1] * MAX_CLASS_COUNT, (self.image_width, self.image_height), interpolation=cv2.INTER_LINEAR)
+            cv2.resize(raw_vision_obs["seg"][:, :, 0:1] * MAX_CLASS_COUNT, (self.image_width, self.image_height), interpolation=cv2.INTER_NEAREST_EXACT)
         ).astype(np.int32)
         return seg
 
@@ -155,8 +155,6 @@ class VisionSensor(BaseSensor):
         :return: vision sensor reading
         """
         raw_vision_obs = env.simulator.renderer.render_robot_cameras(modes=self.raw_modalities)
-
-
         raw_vision_obs = {mode: value for mode, value in zip(self.raw_modalities, raw_vision_obs)}
 
         vision_obs = OrderedDict()
