@@ -848,7 +848,6 @@ class URDFObject(StatefulObject):
                     p.setJointMotorControl2(
                         body_id, j, p.VELOCITY_CONTROL, targetVelocity=0.0, force=self.joint_friction
                     )
-
             simulator.load_object_in_renderer(
                 self,
                 body_id,
