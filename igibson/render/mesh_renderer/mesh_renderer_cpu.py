@@ -1267,7 +1267,13 @@ class MeshRenderer(object):
             up_direction = mat.dot(np.array([0, 0, 1]))
             self.set_camera(camera_pos, camera_pos + view_direction, up_direction, cache=need_flow_info and cache)
         else:
-            eye, target, up = robot.get_camera_eye_target_up()
+            # Hardcoded third-person camera
+            import math
+            yaw_rad = math.radians(-60)
+            eye = np.array([0.0, -math.cos(yaw_rad), -math.sin(yaw_rad)])
+            target = np.zeros(3)
+            up = np.array([0.0, 0.0, 1.0])
+
             self.set_camera(eye, target, up, cache=need_flow_info and cache)
         for item in self.render(modes=modes, hidden=hide_instances):
             frames.append(item)

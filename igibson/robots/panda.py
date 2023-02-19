@@ -1,20 +1,75 @@
 import os
 import logging
 
-import ipdb
 import numpy as np
 
 import pybullet as p
+import collections
 
 from igibson.robots.manipulation_robot import ManipulationRobot
 
 from pb_planning.pb_tools.ikfast.franka_panda import ik as franka_panda
 import pb_planning
 
-import mtv
-from mtv import utils
-
 log = logging.getLogger(__name__)
+
+
+# Moved from utils function to be standalone
+CLIENT = 0
+BASE_LINK = -1
+BodyInfo = collections.namedtuple('BodyInfo', ['base_name', 'body_name'])
+
+JointInfo = collections.namedtuple(
+    'JointInfo',
+    [
+        'joint_index',
+        'joint_name',
+        'joint_type',
+        'q_index',
+        'u_index',
+        'flags',
+        'joint_amping',
+        'joint_friction',
+        'joint_lower_limit',
+        'joint_upper_limit',
+        'joint_max_force',
+        'joint_max_velocity',
+        'link_name',
+        'joint_axis',
+        'parent_frame_pos',
+        'parent_frame_orn',
+        'parent_index'
+    ]
+)
+
+
+def get_joint_info(body, joint):
+    return JointInfo(*p.getJointInfo(body, joint, physicsClientId=CLIENT))
+
+def get_link_name(body, link):
+    if link == BASE_LINK:
+        return get_base_name(body)
+    return get_joint_info(body, link).link_name.decode('UTF-8')
+
+def get_num_joints(body):
+    return p.getNumJoints(body, physicsClientId=CLIENT)
+
+def get_joints(body):
+    return list(range(get_num_joints(body)))
+
+def get_body_info(body):
+    return BodyInfo(*p.getBodyInfo(body, physicsClientId=CLIENT))
+
+def get_base_name(body):
+    return get_body_info(body).base_name.decode(encoding='UTF-8')
+
+def link_from_name(body, name):
+    if name == get_base_name(body):
+        return BASE_LINK
+    for link in get_joints(body):
+        if get_link_name(body, link) == name:
+            return link
+    raise ValueError(body, name)
 
 
 class Panda(ManipulationRobot):
@@ -68,8 +123,8 @@ class Panda(ManipulationRobot):
             simulator.load_object_in_renderer(self, body_id, self.class_id, **self._rendering_params)
 
         self.body_id = body_ids[0]
-        self.tool_link_id = utils.link_from_name(self.body_id, 'tool_link')
-        self.hand_link_id = utils.link_from_name(self.body_id, 'panda_hand')
+        self.tool_link_id = link_from_name(self.body_id, 'tool_link')
+        self.hand_link_id = link_from_name(self.body_id, 'panda_hand')
 
         return body_ids
 
@@ -111,15 +166,6 @@ class Panda(ManipulationRobot):
     @property
     def gripper_control_idx(self):
         return {self.default_arm: np.array([7, 8])}
-
-    def get_camera_eye_target_up(self):
-        hand_pos, hand_quat = utils.get_link_pose(self.body_id, self.hand_link_id)
-        hand_R = utils.R_from_quat(hand_quat)
-        hand_x, hand_y, hand_z = hand_R[:, 0], hand_R[:, 1], hand_R[:, 2]
-        eye = hand_pos + 0.01 * hand_z - 0.13 * hand_x
-        target = hand_pos + 1. * hand_z + 0.3 * hand_x
-        up = -hand_z
-        return eye, target, up
 
     @property
     def eyes(self):
