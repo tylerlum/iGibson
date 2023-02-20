@@ -74,6 +74,10 @@ def link_from_name(body, name):
 
 class Panda(ManipulationRobot):
 
+    def __init__(self, camera_pitch_deg, camera_dist_to_target, **kwargs):
+        super().__init__(**kwargs)
+        self.camera_pitch_deg, self.camera_dist_to_target = camera_pitch_deg, camera_dist_to_target
+
     def _load(self, simulator):
         """
         Loads this pybullet model into the simulation. Should return a list of unique body IDs corresponding

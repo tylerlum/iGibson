@@ -1259,7 +1259,7 @@ class MeshRenderer(object):
         frames = []
         hide_instances = robot.renderer_instances if self.rendering_settings.hide_robot else []
         need_flow_info = "optical_flow" in modes or "scene_flow" in modes
-        if robot.eyes is not None:
+        if robot.name != "Panda":
             camera_pos = robot.eyes.get_position()
             orn = robot.eyes.get_orientation()
             mat = quat2rotmat(xyzw2wxyz(orn))[:3, :3]
@@ -1269,8 +1269,10 @@ class MeshRenderer(object):
         else:
             # Hardcoded third-person camera
             import math
-            yaw_rad = math.radians(-60)
-            eye = np.array([0.0, -math.cos(yaw_rad), -math.sin(yaw_rad)])
+            pitch_rad = math.radians(robot.camera_pitch_deg)
+            dist = robot.camera_dist_to_target
+
+            eye = np.array([0.0, -dist*math.cos(pitch_rad), -dist*math.sin(pitch_rad)])
             target = np.zeros(3)
             up = np.array([0.0, 0.0, 1.0])
 
