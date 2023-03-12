@@ -1282,15 +1282,15 @@ class MeshRenderer(object):
 
             return frames
         else:
-            # Hand centric
-            eye, target, up = robot.get_hand_centric_camera_eye_target_up()
+            # Third person
+            eye, target, up = robot.get_third_person_camera_eye_target_up()
             self.set_camera(eye, target, up, cache=need_flow_info and cache)
             frames1 = []
             for item in self.render(modes=modes, hidden=hide_instances):
                 frames1.append(item)
 
-            # Third person
-            eye, target, up = robot.get_third_person_camera_eye_target_up()
+            # Hand centric
+            eye, target, up = robot.get_hand_centric_camera_eye_target_up()
             self.set_camera(eye, target, up, cache=need_flow_info and cache)
             frames2 = []
             for item in self.render(modes=modes, hidden=hide_instances):
