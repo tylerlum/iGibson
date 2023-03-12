@@ -1273,7 +1273,7 @@ class MeshRenderer(object):
                 frames.append(item)
 
             return frames
-        elif robot.camera_view != "HAND_CENTRIC_AND_THIRD_PERSON":
+        elif robot.camera_view != "THIRD_PERSON_AND_HAND_CENTRIC":
             eye, target, up = robot.get_camera_eye_target_up()
             self.set_camera(eye, target, up, cache=need_flow_info and cache)
 

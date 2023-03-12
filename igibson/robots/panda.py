@@ -127,7 +127,7 @@ class Panda(ManipulationRobot):
 
     def __init__(self, camera_view="HAND_CENTRIC", third_person_camera_pitch_deg=None, third_person_camera_dist_to_target=None, **kwargs):
         super().__init__(**kwargs)
-        assert (camera_view in ["HAND_CENTRIC", "THIRD_PERSON", "HAND_CENTRIC_AND_THIRD_PERSON"])
+        assert (camera_view in ["HAND_CENTRIC", "THIRD_PERSON", "THIRD_PERSON_AND_HAND_CENTRIC"])
 
         self.camera_view = camera_view
         self.third_person_camera_pitch_deg, self.third_person_camera_dist_to_target = third_person_camera_pitch_deg, third_person_camera_dist_to_target
