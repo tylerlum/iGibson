@@ -1268,14 +1268,39 @@ class MeshRenderer(object):
             view_direction = mat.dot(np.array([1, 0, 0]))
             up_direction = mat.dot(np.array([0, 0, 1]))
             self.set_camera(camera_pos, camera_pos + view_direction, up_direction, cache=need_flow_info and cache)
-        else:
+
+            for item in self.render(modes=modes, hidden=hide_instances):
+                frames.append(item)
+
+            return frames
+        elif robot.camera_view != "HAND_CENTRIC_AND_THIRD_PERSON":
             eye, target, up = robot.get_camera_eye_target_up()
             self.set_camera(eye, target, up, cache=need_flow_info and cache)
 
-        for item in self.render(modes=modes, hidden=hide_instances):
-            frames.append(item)
+            for item in self.render(modes=modes, hidden=hide_instances):
+                frames.append(item)
 
-        return frames
+            return frames
+        else:
+            # Hand centric
+            eye, target, up = robot.get_hand_centric_camera_eye_target_up()
+            self.set_camera(eye, target, up, cache=need_flow_info and cache)
+            frames1 = []
+            for item in self.render(modes=modes, hidden=hide_instances):
+                frames1.append(item)
+
+            # Third person
+            eye, target, up = robot.get_third_person_camera_eye_target_up()
+            self.set_camera(eye, target, up, cache=need_flow_info and cache)
+            frames2 = []
+            for item in self.render(modes=modes, hidden=hide_instances):
+                frames2.append(item)
+
+            # Merge
+            for frame1, frame2 in zip(frames1, frames2):
+                frames.append(np.concatenate([frame1, frame2], axis=1))  # Concatenate in width dim
+
+            return frames
 
     def _get_names_active_cameras(self):
         """

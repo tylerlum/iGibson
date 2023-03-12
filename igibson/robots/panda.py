@@ -127,7 +127,7 @@ class Panda(ManipulationRobot):
 
     def __init__(self, camera_view="HAND_CENTRIC", third_person_camera_pitch_deg=None, third_person_camera_dist_to_target=None, **kwargs):
         super().__init__(**kwargs)
-        assert (camera_view in ["HAND_CENTRIC", "THIRD_PERSON"])
+        assert (camera_view in ["HAND_CENTRIC", "THIRD_PERSON", "HAND_CENTRIC_AND_THIRD_PERSON"])
 
         self.camera_view = camera_view
         self.third_person_camera_pitch_deg, self.third_person_camera_dist_to_target = third_person_camera_pitch_deg, third_person_camera_dist_to_target
@@ -231,23 +231,29 @@ class Panda(ManipulationRobot):
 
     def get_camera_eye_target_up(self):
         if self.camera_view == "HAND_CENTRIC":
-            hand_pos, hand_quat = get_link_pose(self.body_id, self.hand_link_id)
-            hand_R = R_from_quat(hand_quat)
-            hand_x, hand_y, hand_z = hand_R[:, 0], hand_R[:, 1], hand_R[:, 2]
-
-            eye = hand_pos + 0.01 * hand_z - 0.13 * hand_x
-            target = hand_pos + 1. * hand_z + 0.3 * hand_x
-            up = -hand_z
-
-            return eye, target, up
+            return self.get_hand_centric_camera_eye_target_up()
         elif self.camera_view == "THIRD_PERSON":
-            pitch_rad = math.radians(self.third_person_camera_pitch_deg)
-            dist = self.third_person_camera_dist_to_target
-
-            eye = np.array([0.0, -dist*math.cos(pitch_rad), -dist*math.sin(pitch_rad)])
-            target = np.zeros(3)
-            up = np.array([0.0, 0.0, 1.0])
-
-            return eye, target, up
+            return self.get_third_person_camera_eye_target_up()
         else:
             raise ValueError(f"Invalid camera_view = {self.camera_view}")
+
+    def get_hand_centric_camera_eye_target_up(self):
+        hand_pos, hand_quat = get_link_pose(self.body_id, self.hand_link_id)
+        hand_R = R_from_quat(hand_quat)
+        hand_x, hand_y, hand_z = hand_R[:, 0], hand_R[:, 1], hand_R[:, 2]
+
+        eye = hand_pos + 0.01 * hand_z - 0.13 * hand_x
+        target = hand_pos + 1. * hand_z + 0.3 * hand_x
+        up = -hand_z
+
+        return eye, target, up
+
+    def get_third_person_camera_eye_target_up(self):
+        pitch_rad = math.radians(self.third_person_camera_pitch_deg)
+        dist = self.third_person_camera_dist_to_target
+
+        eye = np.array([0.0, -dist*math.cos(pitch_rad), -dist*math.sin(pitch_rad)])
+        target = np.zeros(3)
+        up = np.array([0.0, 0.0, 1.0])
+
+        return eye, target, up
